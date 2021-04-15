@@ -27,13 +27,14 @@ buildscript {
         roomVersion = "2.2.5"
         testExtJunitVersion = "1.1.2"
     }
-
+    
     ext.kotlin_version = "1.4.21"
     repositories {
         google()
         jcenter()
     }
     dependencies {
+
         classpath "com.android.tools.build:gradle:$gradleVersion"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath "androidx.navigation:navigation-safe-args-gradle-plugin:$navigationVersion"
