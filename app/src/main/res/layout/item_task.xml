@@ -36,7 +36,7 @@
         android:layout_height="24dp"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
-        android:src="@drawable/orangesign"
+        android:src="@drawable/bombwhite"
         android:layout_alignParentRight="true" />
 
 </RelativeLayout>

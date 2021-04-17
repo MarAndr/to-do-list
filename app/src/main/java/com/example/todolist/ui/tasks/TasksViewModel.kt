@@ -5,6 +5,9 @@ import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.*
 import com.example.todolist.data.Task
 import com.example.todolist.data.TaskDao
+import com.example.todolist.ui.ADD_TASK_RESULT_OK
+import com.example.todolist.ui.EDIT_TASK_RESULT_OK
+import com.example.todolist.ui.addedittask.AddEditTaskViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -65,10 +68,22 @@ class TasksViewModel @ViewModelInject constructor(
         taskEventChannel.send(TaskEvent.NavigateToAddTaskScreen)
     }
 
+    fun onAddEditResult(result: Int){
+        when(result){
+            ADD_TASK_RESULT_OK -> showTaskSavedConfirmationMessage("Task added")
+            EDIT_TASK_RESULT_OK -> showTaskSavedConfirmationMessage("Task updated")
+        }
+    }
+
+    private fun showTaskSavedConfirmationMessage(message: String) = viewModelScope.launch {
+        taskEventChannel.send(TaskEvent.ShowTaskSavedConfirmationMessage(message))
+    }
+
     sealed class TaskEvent{
         object NavigateToAddTaskScreen: TaskEvent()
         data class NavigateToEditTaskScreen(val task: Task): TaskEvent()
         data class ShowUndoDeletedTaskMessage(val task: Task): TaskEvent()
+        data class ShowTaskSavedConfirmationMessage(val message: String): TaskEvent()
     }
 
 
