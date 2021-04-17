@@ -1,9 +1,8 @@
 package com.example.todolist.ui.tasks
 
+import androidx.hilt.Assisted
 import androidx.hilt.lifecycle.ViewModelInject
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.example.todolist.data.Task
 import com.example.todolist.data.TaskDao
 import kotlinx.coroutines.channels.Channel
@@ -15,10 +14,11 @@ import kotlinx.coroutines.launch
 
 class TasksViewModel @ViewModelInject constructor(
     private val taskDao: TaskDao,
-    private val repository: Repository
+    private val repository: Repository,
+    @Assisted private val state: SavedStateHandle
 ): ViewModel() {
 
-    val searchQuery = MutableStateFlow("")
+    val searchQuery = state.getLiveData("searchQuery","")
 
     val preferencesFlow = repository.preferenceFlow
 
@@ -26,7 +26,7 @@ class TasksViewModel @ViewModelInject constructor(
     val taskEvent = taskEventChannel.receiveAsFlow()
 
     private val tasksFlow = combine(
-      searchQuery,
+      searchQuery.asFlow(),
         preferencesFlow
     ){ searchQuery, filterPreferences->
         Pair(searchQuery, filterPreferences)
@@ -44,8 +44,8 @@ class TasksViewModel @ViewModelInject constructor(
         repository.updateHideCompleted(hideCompleted)
     }
 
-    fun onTaskSelected(task: Task){
-
+    fun onTaskSelected(task: Task) = viewModelScope.launch {
+        taskEventChannel.send(TaskEvent.NavigateToEditTaskScreen(task))
     }
 
     fun onTaskCheckedChanged(task: Task, isChecked: Boolean) = viewModelScope.launch {
@@ -61,9 +61,17 @@ class TasksViewModel @ViewModelInject constructor(
         taskDao.insertTask(task)
     }
 
+    fun onAddNewTaskClick() = viewModelScope.launch {
+        taskEventChannel.send(TaskEvent.NavigateToAddTaskScreen)
+    }
+
     sealed class TaskEvent{
+        object NavigateToAddTaskScreen: TaskEvent()
+        data class NavigateToEditTaskScreen(val task: Task): TaskEvent()
         data class ShowUndoDeletedTaskMessage(val task: Task): TaskEvent()
     }
+
+
 
 }
 
