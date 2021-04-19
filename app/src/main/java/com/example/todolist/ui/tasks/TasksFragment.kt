@@ -31,6 +31,7 @@ import kotlinx.coroutines.launch
 class TasksFragment: ViewBindingFragment<FragmentTasksBinding>(FragmentTasksBinding::inflate), TasksAdapter.OnItemClickListener {
 
     private val viewModel: TasksViewModel by viewModels()
+    private lateinit var searchView: SearchView
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -89,6 +90,10 @@ class TasksFragment: ViewBindingFragment<FragmentTasksBinding>(FragmentTasksBind
                     is TasksViewModel.TaskEvent.ShowTaskSavedConfirmationMessage -> {
                         Snackbar.make(requireView(), event.message, Snackbar.LENGTH_LONG).show()
                     }
+                    TasksViewModel.TaskEvent.NavigateToDeleteAllCompletedScreen -> {
+                        val action = TasksFragmentDirections.actionGlobalDeleteAllCompletedDialogFragment()
+                        findNavController().navigate(action)
+                    }
                 }.exhaustive
             }
         }
@@ -108,7 +113,13 @@ class TasksFragment: ViewBindingFragment<FragmentTasksBinding>(FragmentTasksBind
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.menu_fragment_tasks, menu)
         val searchItem = menu.findItem(R.id.action_search)
-        val searchView = searchItem.actionView as SearchView
+        searchView = searchItem.actionView as SearchView
+
+        val pendingQuery = viewModel.searchQuery.value
+        if (pendingQuery != null && pendingQuery.isNotEmpty()) {
+            searchItem.expandActionView()
+            searchView.setQuery(pendingQuery, false)
+        }
 
         searchView.onQueryTextChanged {
             //update search query
@@ -137,10 +148,16 @@ class TasksFragment: ViewBindingFragment<FragmentTasksBinding>(FragmentTasksBind
                 true
             }
             R.id.action_delete_all_completed_tasks -> {
+                viewModel.onDeleteAllCompletedClick()
                 true
             }
         else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        searchView.setOnQueryTextListener(null)
     }
 
 
